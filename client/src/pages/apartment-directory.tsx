@@ -15,13 +15,14 @@ function getTowerLetter(towerId: number): string {
   return String.fromCharCode(64 + towerId); // A = 65 in ASCII
 }
 
-function formatCurrency(amount: number | null): string {
+function formatCurrency(amount: string | number | null): string {
   if (!amount) return "N/A";
+  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
     maximumFractionDigits: 0
-  }).format(amount);
+  }).format(numericAmount);
 }
 
 export default function ApartmentDirectory() {
@@ -64,7 +65,7 @@ export default function ApartmentDirectory() {
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Building2 className="h-5 w-5 text-muted-foreground" />
-                    <span>{apartment.number}</span>
+                    <span>{`${towerLetter}-${apartment.floor}${apartment.number.slice(-2)}`}</span>
                   </div>
                   <div
                     className={`px-3 py-1 text-sm rounded-full ${
