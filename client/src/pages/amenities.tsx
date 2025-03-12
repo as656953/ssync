@@ -12,13 +12,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Amenity, insertBookingSchema } from "@shared/schema";
 import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, isBefore, addDays } from "date-fns";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Users, Home, Dumbbell } from "lucide-react";
 
 export default function Amenities() {
   const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>(new Date());
+  const [selectedEndDate, setSelectedEndDate] = useState<Date | undefined>(addDays(new Date(), 1));
   const [selectedAmenity, setSelectedAmenity] = useState<Amenity | null>(null);
 
   const { data: amenities, isLoading } = useQuery<Amenity[]>({
@@ -27,11 +28,15 @@ export default function Amenities() {
 
   const bookingMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedDate || !selectedAmenity) return;
+      if (!selectedStartDate || !selectedEndDate || !selectedAmenity) return;
 
-      const startTime = new Date(selectedDate);
+      if (isBefore(selectedEndDate, selectedStartDate)) {
+        throw new Error("End date must be after start date");
+      }
+
+      const startTime = new Date(selectedStartDate);
       startTime.setHours(9, 0, 0); // 9 AM
-      const endTime = new Date(selectedDate);
+      const endTime = new Date(selectedEndDate);
       endTime.setHours(21, 0, 0); // 9 PM
 
       const bookingData = insertBookingSchema.parse({
@@ -111,26 +116,46 @@ export default function Amenities() {
                       Book Now
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Book {amenity.name}</DialogTitle>
                     </DialogHeader>
                     <div className="py-4">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        className="rounded-md border"
-                        disabled={(date) => date < new Date()}
-                      />
-                      <div className="mt-4 text-sm text-muted-foreground">
-                        Selected date:{" "}
-                        {selectedDate && format(selectedDate, "PPP")}
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium mb-2">Start Date</h4>
+                        <Calendar
+                          mode="single"
+                          selected={selectedStartDate}
+                          onSelect={setSelectedStartDate}
+                          className="rounded-md border"
+                          disabled={(date) => isBefore(date, new Date())}
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium mb-2">End Date</h4>
+                        <Calendar
+                          mode="single"
+                          selected={selectedEndDate}
+                          onSelect={setSelectedEndDate}
+                          className="rounded-md border"
+                          disabled={(date) => 
+                            isBefore(date, selectedStartDate || new Date())
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <div>Selected period:</div>
+                        <div>
+                          From: {selectedStartDate && format(selectedStartDate, "PPP")}
+                        </div>
+                        <div>
+                          To: {selectedEndDate && format(selectedEndDate, "PPP")}
+                        </div>
                       </div>
                       <Button
                         className="w-full mt-4"
                         onClick={() => bookingMutation.mutate()}
-                        disabled={!selectedDate || bookingMutation.isPending}
+                        disabled={!selectedStartDate || !selectedEndDate || bookingMutation.isPending}
                       >
                         {bookingMutation.isPending ? (
                           <>
