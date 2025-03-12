@@ -123,25 +123,29 @@ export default function Amenities() {
                     <div className="py-4">
                       <div className="mb-4">
                         <h4 className="text-sm font-medium mb-2">Start Date</h4>
-                        <Calendar
-                          mode="single"
-                          selected={selectedStartDate}
-                          onSelect={setSelectedStartDate}
-                          className="rounded-md border"
-                          disabled={(date) => isBefore(date, new Date())}
-                        />
+                        <div className="max-w-full overflow-x-auto"> {/* Added to prevent overflow */}
+                          <Calendar
+                            mode="single"
+                            selected={selectedStartDate}
+                            onSelect={setSelectedStartDate}
+                            className="rounded-md border"
+                            disabled={(date) => isBefore(date, new Date())}
+                          />
+                        </div>
                       </div>
                       <div className="mb-4">
                         <h4 className="text-sm font-medium mb-2">End Date</h4>
-                        <Calendar
-                          mode="single"
-                          selected={selectedEndDate}
-                          onSelect={setSelectedEndDate}
-                          className="rounded-md border"
-                          disabled={(date) => 
-                            isBefore(date, selectedStartDate || new Date())
-                          }
-                        />
+                        <div className="max-w-full overflow-x-auto"> {/* Added to prevent overflow */}
+                          <Calendar
+                            mode="single"
+                            selected={selectedEndDate}
+                            onSelect={setSelectedEndDate}
+                            className="rounded-md border"
+                            disabled={(date) =>
+                              isBefore(date, selectedStartDate || new Date())
+                            }
+                          />
+                        </div>
                       </div>
                       <div className="space-y-1 text-sm text-muted-foreground">
                         <div>Selected period:</div>
