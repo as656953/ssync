@@ -15,7 +15,7 @@ export default function ApartmentDirectory() {
   const [selectedTower, setSelectedTower] = useState<string>("1");
 
   const { data: apartments, isLoading } = useQuery<Apartment[]>({
-    queryKey: ["/api/towers", selectedTower, "apartments"],
+    queryKey: [`/api/towers/${selectedTower}/apartments`],
   });
 
   const towerNumbers = Array.from({ length: 16 }, (_, i) => (i + 1).toString());
@@ -61,7 +61,7 @@ export default function ApartmentDirectory() {
                   </div>
                   <div
                     className={`mt-4 p-2 text-center rounded-lg ${
-                      apartment.floor === 6
+                      apartment.type === "3BHK"
                         ? "bg-purple-100 text-purple-800"
                         : "bg-blue-100 text-blue-800"
                     }`}
