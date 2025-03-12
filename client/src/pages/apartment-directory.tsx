@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Apartment } from "@shared/schema";
-import { Loader2 } from "lucide-react";
+import { Loader2, Building2 } from "lucide-react";
 import { useState } from "react";
 
 function getTowerLetter(towerId: number): string {
@@ -30,7 +30,7 @@ export default function ApartmentDirectory() {
         <Select value={selectedTower} onValueChange={setSelectedTower}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select Tower">
-              {selectedTower ? `Tower ${getTowerLetter(parseInt(selectedTower))}` : "Select Tower"}
+              {selectedTower ? `Tower ${towerLetter}` : "Select Tower"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -50,17 +50,20 @@ export default function ApartmentDirectory() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {apartments?.map((apartment) => (
-            <Card key={apartment.id}>
+            <Card key={apartment.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle>Apartment {apartment.number}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                  <span>{apartment.number}</span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Floor</span>
                     <span className="font-medium">{apartment.floor}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Type</span>
                     <span className="font-medium">{apartment.type}</span>
                   </div>
