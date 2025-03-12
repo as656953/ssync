@@ -1,136 +1,87 @@
-import { User, InsertUser, Apartment, Amenity, Booking } from "@shared/schema";
+import { users, type User, type InsertUser, apartments, amenities, bookings, type Apartment, type Amenity, type Booking } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
-const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   // Apartments
   getApartments(): Promise<Apartment[]>;
   getApartmentsByTower(towerId: number): Promise<Apartment[]>;
-  
+
   // Amenities
   getAmenities(): Promise<Amenity[]>;
   getAmenity(id: number): Promise<Amenity | undefined>;
-  
+
   // Bookings
   createBooking(booking: Omit<Booking, "id">): Promise<Booking>;
   getBookingsByUser(userId: number): Promise<Booking[]>;
   getBookingsByAmenity(amenityId: number): Promise<Booking[]>;
-  
+
   sessionStore: session.Store;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private apartments: Map<number, Apartment>;
-  private amenities: Map<number, Amenity>;
-  private bookings: Map<number, Booking>;
+export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
-  private currentId: number;
 
   constructor() {
-    this.users = new Map();
-    this.apartments = new Map();
-    this.amenities = new Map();
-    this.bookings = new Map();
-    this.currentId = 1;
-    this.sessionStore = new MemoryStore({ checkPeriod: 86400000 });
-    
-    // Initialize with sample data
-    this.initializeData();
-  }
-
-  private initializeData() {
-    // Initialize towers and apartments
-    for (let tower = 1; tower <= 16; tower++) {
-      for (let floor = 1; floor <= 6; floor++) {
-        const apartmentsPerFloor = floor === 6 ? 2 : 4;
-        for (let unit = 1; unit <= apartmentsPerFloor; unit++) {
-          const apartment: Apartment = {
-            id: this.currentId++,
-            number: `${tower}-${floor}${unit}`,
-            towerId: tower,
-            floor,
-            type: floor === 6 ? "3BHK" : "2BHK"
-          };
-          this.apartments.set(apartment.id, apartment);
-        }
-      }
-    }
-
-    // Initialize amenities
-    const amenities: Omit<Amenity, "id">[] = [
-      { name: "Gym", type: "GYM", description: "Fully equipped gymnasium", maxCapacity: 20 },
-      { name: "Guest House 1", type: "GUEST_HOUSE", description: "Guest accommodation", maxCapacity: 4 },
-      { name: "Guest House 2", type: "GUEST_HOUSE", description: "Guest accommodation", maxCapacity: 4 },
-      { name: "Guest House 3", type: "GUEST_HOUSE", description: "Guest accommodation", maxCapacity: 4 },
-      { name: "Guest House 4", type: "GUEST_HOUSE", description: "Guest accommodation", maxCapacity: 4 },
-      { name: "Clubhouse", type: "CLUBHOUSE", description: "Community gathering space", maxCapacity: 100 }
-    ];
-
-    amenities.forEach(amenity => {
-      this.amenities.set(this.currentId, { ...amenity, id: this.currentId++ });
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true,
     });
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async getApartments(): Promise<Apartment[]> {
-    return Array.from(this.apartments.values());
+    return await db.select().from(apartments);
   }
 
   async getApartmentsByTower(towerId: number): Promise<Apartment[]> {
-    return Array.from(this.apartments.values()).filter(
-      (apt) => apt.towerId === towerId
-    );
+    return await db.select().from(apartments).where(eq(apartments.towerId, towerId));
   }
 
   async getAmenities(): Promise<Amenity[]> {
-    return Array.from(this.amenities.values());
+    return await db.select().from(amenities);
   }
 
   async getAmenity(id: number): Promise<Amenity | undefined> {
-    return this.amenities.get(id);
+    const [amenity] = await db.select().from(amenities).where(eq(amenities.id, id));
+    return amenity;
   }
 
   async createBooking(booking: Omit<Booking, "id">): Promise<Booking> {
-    const id = this.currentId++;
-    const newBooking: Booking = { ...booking, id };
-    this.bookings.set(id, newBooking);
+    const [newBooking] = await db.insert(bookings).values(booking).returning();
     return newBooking;
   }
 
   async getBookingsByUser(userId: number): Promise<Booking[]> {
-    return Array.from(this.bookings.values()).filter(
-      (booking) => booking.userId === userId
-    );
+    return await db.select().from(bookings).where(eq(bookings.userId, userId));
   }
 
   async getBookingsByAmenity(amenityId: number): Promise<Booking[]> {
-    return Array.from(this.bookings.values()).filter(
-      (booking) => booking.amenityId === amenityId
-    );
+    return await db.select().from(bookings).where(eq(bookings.amenityId, amenityId));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
