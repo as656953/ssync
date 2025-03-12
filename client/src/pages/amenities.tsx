@@ -40,11 +40,11 @@ export default function Amenities() {
       const endTime = new Date(selectedEndDate);
       endTime.setHours(21, 0, 0); // 9 PM
 
-      // Create booking data without validation first
+      // Create booking data with proper validation
       const bookingData = {
         amenityId: selectedAmenity.id,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
+        startTime: startTime,  // Send as Date object instead of string
+        endTime: endTime,      // Send as Date object instead of string
         status: "PENDING",
       };
 
