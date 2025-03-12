@@ -11,14 +11,17 @@ import { Apartment } from "@shared/schema";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
+function getTowerLetter(towerId: number): string {
+  return String.fromCharCode(64 + towerId); // A = 65 in ASCII
+}
+
 export default function ApartmentDirectory() {
   const [selectedTower, setSelectedTower] = useState<string>("1");
+  const towerLetter = getTowerLetter(parseInt(selectedTower));
 
   const { data: apartments, isLoading } = useQuery<Apartment[]>({
     queryKey: [`/api/towers/${selectedTower}/apartments`],
   });
-
-  const towerNumbers = Array.from({ length: 16 }, (_, i) => (i + 1).toString());
 
   return (
     <div className="container p-6">
@@ -26,12 +29,14 @@ export default function ApartmentDirectory() {
         <h1 className="text-3xl font-bold">Apartment Directory</h1>
         <Select value={selectedTower} onValueChange={setSelectedTower}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select Tower" />
+            <SelectValue placeholder="Select Tower">
+              {selectedTower ? `Tower ${getTowerLetter(parseInt(selectedTower))}` : "Select Tower"}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {towerNumbers.map((tower) => (
-              <SelectItem key={tower} value={tower}>
-                Tower {tower}
+            {Array.from({ length: 16 }, (_, i) => i + 1).map((tower) => (
+              <SelectItem key={tower} value={tower.toString()}>
+                Tower {getTowerLetter(tower)}
               </SelectItem>
             ))}
           </SelectContent>
