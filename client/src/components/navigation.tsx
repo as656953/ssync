@@ -36,26 +36,27 @@ export default function Navigation() {
   const NavLinks = () => (
     <>
       <Link href="/">
-        <Button variant="ghost" className="w-full justify-start">
+        <Button variant="ghost" size="sm">
           <Home className="mr-2 h-4 w-4" />
           Dashboard
         </Button>
       </Link>
       <Link href="/apartments">
-        <Button variant="ghost" className="w-full justify-start">
+        <Button variant="ghost" size="sm">
           <Building2 className="mr-2 h-4 w-4" />
           Apartments
         </Button>
       </Link>
       <Link href="/amenities">
-        <Button variant="ghost" className="w-full justify-start">
+        <Button variant="ghost" size="sm">
           <CalendarDays className="mr-2 h-4 w-4" />
           Amenities
         </Button>
       </Link>
       <Button
         variant="ghost"
-        className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+        size="sm"
+        className="text-red-500 hover:text-red-600 hover:bg-red-50"
         onClick={handleLogout}
       >
         <LogOut className="mr-2 h-4 w-4" />
@@ -67,18 +68,18 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Navigation */}
-      <div className="hidden md:flex flex-col fixed left-0 top-0 h-screen w-64 bg-sidebar p-4 border-r">
-        <div className="flex items-center gap-2 mb-8">
+      <header className="hidden md:flex items-center justify-between px-6 h-16 bg-background border-b">
+        <div className="flex items-center gap-2">
           <Building2 className="h-6 w-6" />
           <h1 className="font-bold text-lg">Society Management</h1>
         </div>
-        <div className="flex flex-col gap-2">
+        <nav className="flex items-center gap-2">
           <NavLinks />
-        </div>
-      </div>
+        </nav>
+      </header>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-background border-b px-4 flex items-center justify-between">
+      <header className="md:hidden flex items-center justify-between h-16 bg-background border-b px-4">
         <div className="flex items-center gap-2">
           <Building2 className="h-6 w-6" />
           <h1 className="font-bold">Society Management</h1>
@@ -95,10 +96,10 @@ export default function Navigation() {
             </div>
           </SheetContent>
         </Sheet>
-      </div>
+      </header>
 
       {/* Content Padding */}
-      <div className="md:pl-64 pt-16 md:pt-0" />
+      <div className="pt-16" />
     </>
   );
 }

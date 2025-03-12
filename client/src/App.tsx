@@ -27,8 +27,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Navigation />
-        <Router />
+        <div className="min-h-screen bg-background">
+          <Navigation />
+          <main>
+            <Router />
+          </main>
+        </div>
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>
