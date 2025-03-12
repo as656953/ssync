@@ -34,17 +34,19 @@ export default function Amenities() {
         throw new Error("End date must be after start date");
       }
 
+      // Create new Date objects with the correct time
       const startTime = new Date(selectedStartDate);
       startTime.setHours(9, 0, 0); // 9 AM
       const endTime = new Date(selectedEndDate);
       endTime.setHours(21, 0, 0); // 9 PM
 
-      const bookingData = insertBookingSchema.parse({
+      // Create booking data without validation first
+      const bookingData = {
         amenityId: selectedAmenity.id,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         status: "PENDING",
-      });
+      };
 
       const res = await apiRequest("POST", "/api/bookings", bookingData);
       return res.json();
@@ -107,18 +109,23 @@ export default function Amenities() {
                   </span>
                   <span className="font-medium">{amenity.maxCapacity} people</span>
                 </div>
-                <Dialog>
+                <Dialog open={selectedAmenity?.id === amenity.id} onOpenChange={(open) => {
+                  if (!open) setSelectedAmenity(null);
+                }}>
                   <DialogTrigger asChild>
                     <Button
-                      className="w-full"
                       onClick={() => setSelectedAmenity(amenity)}
+                      className="w-full"
                     >
                       Book Now
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
+                  <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Book {amenity.name}</DialogTitle>
+                      <div className="text-sm text-muted-foreground pt-2">
+                        Select your booking dates below
+                      </div>
                     </DialogHeader>
                     <div className="py-4">
                       <div className="mb-4">
