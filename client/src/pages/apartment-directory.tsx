@@ -8,11 +8,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Apartment } from "@shared/schema";
-import { Loader2, Building2 } from "lucide-react";
+import { Loader2, Building2, Home, Phone, IndianRupee } from "lucide-react";
 import { useState } from "react";
 
 function getTowerLetter(towerId: number): string {
   return String.fromCharCode(64 + towerId); // A = 65 in ASCII
+}
+
+function formatCurrency(amount: number | null): string {
+  if (!amount) return "N/A";
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(amount);
 }
 
 export default function ApartmentDirectory() {
@@ -52,30 +61,86 @@ export default function ApartmentDirectory() {
           {apartments?.map((apartment) => (
             <Card key={apartment.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-muted-foreground" />
-                  <span>{apartment.number}</span>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
+                    <span>{apartment.number}</span>
+                  </div>
+                  <div
+                    className={`px-3 py-1 text-sm rounded-full ${
+                      apartment.status === "AVAILABLE_RENT"
+                        ? "bg-blue-100 text-blue-800"
+                        : apartment.status === "AVAILABLE_SALE"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {apartment.status === "AVAILABLE_RENT"
+                      ? "For Rent"
+                      : apartment.status === "AVAILABLE_SALE"
+                      ? "For Sale"
+                      : "Occupied"}
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Floor</span>
-                    <span className="font-medium">{apartment.floor}</span>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Floor</span>
+                      <p className="font-medium">{apartment.floor}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Type</span>
+                      <p className="font-medium">{apartment.type}</p>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Type</span>
-                    <span className="font-medium">{apartment.type}</span>
+
+                  <div>
+                    <span className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Home className="h-4 w-4" />
+                      Owner
+                    </span>
+                    <p className="font-medium">{apartment.ownerName || "N/A"}</p>
                   </div>
-                  <div
-                    className={`mt-4 p-2 text-center rounded-lg ${
-                      apartment.type === "3BHK"
-                        ? "bg-purple-100 text-purple-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {apartment.type}
-                  </div>
+
+                  {apartment.status !== "OCCUPIED" && (
+                    <>
+                      {apartment.status === "AVAILABLE_RENT" && apartment.monthlyRent && (
+                        <div>
+                          <span className="text-sm text-muted-foreground flex items-center gap-2">
+                            <IndianRupee className="h-4 w-4" />
+                            Monthly Rent
+                          </span>
+                          <p className="font-medium text-green-600">
+                            {formatCurrency(apartment.monthlyRent)}
+                          </p>
+                        </div>
+                      )}
+
+                      {apartment.status === "AVAILABLE_SALE" && apartment.salePrice && (
+                        <div>
+                          <span className="text-sm text-muted-foreground flex items-center gap-2">
+                            <IndianRupee className="h-4 w-4" />
+                            Sale Price
+                          </span>
+                          <p className="font-medium text-green-600">
+                            {formatCurrency(apartment.salePrice)}
+                          </p>
+                        </div>
+                      )}
+
+                      {apartment.contactNumber && (
+                        <div>
+                          <span className="text-sm text-muted-foreground flex items-center gap-2">
+                            <Phone className="h-4 w-4" />
+                            Contact
+                          </span>
+                          <p className="font-medium">{apartment.contactNumber}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>

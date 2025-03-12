@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -22,6 +22,11 @@ export const apartments = pgTable("apartments", {
   towerId: integer("tower_id").notNull(),
   floor: integer("floor").notNull(),
   type: text("type").notNull(), // "2BHK" or "3BHK"
+  ownerName: text("owner_name"),
+  status: text("status").notNull().default('OCCUPIED'), // "AVAILABLE_RENT", "AVAILABLE_SALE", "OCCUPIED"
+  monthlyRent: numeric("monthly_rent"),
+  salePrice: numeric("sale_price"),
+  contactNumber: text("contact_number"),
 });
 
 export const amenities = pgTable("amenities", {
