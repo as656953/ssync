@@ -452,14 +452,12 @@ export default function ApartmentDirectory() {
                           <Building2 className="h-5 w-5 text-primary" />
                         </motion.div>
                         <span className="font-heading">
-                          {
-                            towers?.find((t) => t.id === apartment.towerId)
-                              ?.name
-                          }{" "}
-                          - {apartment.number}
+                          {`${getTowerLetter(apartment.towerId)}-${
+                            apartment.number
+                          }(${apartment.type})`}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <motion.div variants={statusVariants}>
                           <Badge
                             variant="outline"
@@ -484,157 +482,19 @@ export default function ApartmentDirectory() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Dialog
-                                  open={editingApartment?.id === apartment.id}
-                                  onOpenChange={(open) => {
-                                    if (!open) setEditingApartment(null);
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="relative z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-primary/10 ml-1 h-8 w-8 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEdit(apartment);
                                   }}
                                 >
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-                                      onClick={() => handleEdit(apartment)}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle className="font-display">
-                                        Edit Apartment{" "}
-                                        {`${
-                                          towers?.find(
-                                            (t) => t.id === apartment.towerId
-                                          )?.name
-                                        } - ${apartment.number}`}
-                                      </DialogTitle>
-                                    </DialogHeader>
-                                    <form
-                                      onSubmit={handleUpdate}
-                                      className="space-y-4"
-                                    >
-                                      <div>
-                                        <label className="text-sm font-medium">
-                                          Owner Name
-                                        </label>
-                                        <Input
-                                          value={formData.ownerName}
-                                          onChange={(e) =>
-                                            setFormData({
-                                              ...formData,
-                                              ownerName: e.target.value,
-                                            })
-                                          }
-                                          placeholder="Owner Name"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-medium">
-                                          Status
-                                        </label>
-                                        <Select
-                                          value={formData.status}
-                                          onValueChange={(value) =>
-                                            setFormData({
-                                              ...formData,
-                                              status: value,
-                                            })
-                                          }
-                                        >
-                                          <SelectTrigger>
-                                            <SelectValue />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="OCCUPIED">
-                                              Occupied
-                                            </SelectItem>
-                                            <SelectItem value="AVAILABLE_RENT">
-                                              Available for Rent
-                                            </SelectItem>
-                                            <SelectItem value="AVAILABLE_SALE">
-                                              Available for Sale
-                                            </SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-medium">
-                                          Monthly Rent (₹)
-                                        </label>
-                                        <Input
-                                          type="number"
-                                          value={formData.monthlyRent}
-                                          onChange={(e) =>
-                                            setFormData({
-                                              ...formData,
-                                              monthlyRent: e.target.value,
-                                            })
-                                          }
-                                          placeholder="Monthly Rent"
-                                        />
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                          Set monthly rent even if not currently
-                                          for rent
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-medium">
-                                          Sale Price (₹)
-                                        </label>
-                                        <Input
-                                          type="number"
-                                          value={formData.salePrice}
-                                          onChange={(e) =>
-                                            setFormData({
-                                              ...formData,
-                                              salePrice: e.target.value,
-                                            })
-                                          }
-                                          placeholder="Sale Price"
-                                        />
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                          Set sale price even if not currently
-                                          for sale
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <label className="text-sm font-medium">
-                                          Contact Number
-                                        </label>
-                                        <Input
-                                          value={formData.contactNumber}
-                                          onChange={(e) =>
-                                            setFormData({
-                                              ...formData,
-                                              contactNumber: e.target.value,
-                                            })
-                                          }
-                                          placeholder="Contact Number"
-                                        />
-                                      </div>
-                                      <Button
-                                        type="submit"
-                                        className="w-full"
-                                        disabled={
-                                          updateApartmentMutation.isPending
-                                        }
-                                      >
-                                        {updateApartmentMutation.isPending ? (
-                                          <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Updating...
-                                          </>
-                                        ) : (
-                                          "Update Apartment"
-                                        )}
-                                      </Button>
-                                    </form>
-                                  </DialogContent>
-                                </Dialog>
+                                  <Edit className="h-3.5 w-3.5" />
+                                </Button>
                               </TooltipTrigger>
-                              <TooltipContent>
+                              <TooltipContent side="top">
                                 <p>Edit apartment details</p>
                               </TooltipContent>
                             </Tooltip>
@@ -791,6 +651,127 @@ export default function ApartmentDirectory() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Edit Dialog */}
+                {user?.isAdmin && (
+                  <Dialog
+                    open={editingApartment?.id === apartment.id}
+                    onOpenChange={(open) => {
+                      if (!open) setEditingApartment(null);
+                    }}
+                  >
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="font-display">
+                          Edit Apartment{" "}
+                          {`${getTowerLetter(apartment.towerId)}-${
+                            apartment.number
+                          }(${apartment.type})`}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleUpdate} className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Owner Name
+                          </label>
+                          <Input
+                            value={formData.ownerName}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                ownerName: e.target.value,
+                              })
+                            }
+                            placeholder="Owner Name"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Status</label>
+                          <Select
+                            value={formData.status}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, status: value })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="OCCUPIED">Occupied</SelectItem>
+                              <SelectItem value="AVAILABLE_RENT">
+                                Available for Rent
+                              </SelectItem>
+                              <SelectItem value="AVAILABLE_SALE">
+                                Available for Sale
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Monthly Rent (₹)
+                          </label>
+                          <Input
+                            type="number"
+                            value={formData.monthlyRent}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                monthlyRent: e.target.value,
+                              })
+                            }
+                            placeholder="Monthly Rent"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Sale Price (₹)
+                          </label>
+                          <Input
+                            type="number"
+                            value={formData.salePrice}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                salePrice: e.target.value,
+                              })
+                            }
+                            placeholder="Sale Price"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Contact Number
+                          </label>
+                          <Input
+                            value={formData.contactNumber}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                contactNumber: e.target.value,
+                              })
+                            }
+                            placeholder="Contact Number"
+                          />
+                        </div>
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          disabled={updateApartmentMutation.isPending}
+                        >
+                          {updateApartmentMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Updating...
+                            </>
+                          ) : (
+                            "Update Apartment"
+                          )}
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </motion.div>
             ))}
           </motion.div>

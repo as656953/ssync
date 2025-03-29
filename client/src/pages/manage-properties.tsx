@@ -192,26 +192,30 @@ export default function ManageProperties() {
 
   const deleteTowerMutation = useMutation({
     mutationFn: async (towerId: number) => {
-      const res = await apiRequest("DELETE", `/api/towers/${towerId}`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to delete tower");
+      // First delete all apartments in this tower
+      await fetch(`/api/towers/${towerId}/apartments`, {
+        method: "DELETE",
+      });
+
+      // Then delete the tower
+      const response = await fetch(`/api/towers/${towerId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete tower");
       }
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/towers"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/apartments"] });
-      setSelectedTower(null);
       toast({
         title: "Tower deleted",
-        description:
-          "The tower and its apartments have been deleted successfully.",
+        description: "The tower and all its apartments have been deleted.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to delete tower",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -347,7 +351,16 @@ export default function ManageProperties() {
                       variant="ghost"
                       size="icon"
                       className="text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                      onClick={() => deleteTowerMutation.mutate(tower.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (
+                          confirm(
+                            `Are you sure you want to delete ${tower.name}? This will also delete all apartments in this tower.`
+                          )
+                        ) {
+                          deleteTowerMutation.mutate(tower.id);
+                        }
+                      }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -443,20 +456,24 @@ export default function ManageProperties() {
                           <Label htmlFor="status">Status</Label>
                           <Select
                             value={newApartment.status}
-                            onValueChange={(value: any) =>
+                            onValueChange={(value) =>
                               setNewApartment({
                                 ...newApartment,
                                 status: value,
                               })
                             }
                           >
-                            <SelectTrigger id="status">
-                              <SelectValue />
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="FOR_RENT">For Rent</SelectItem>
-                              <SelectItem value="FOR_SALE">For Sale</SelectItem>
                               <SelectItem value="OCCUPIED">Occupied</SelectItem>
+                              <SelectItem value="AVAILABLE_RENT">
+                                Available for Rent
+                              </SelectItem>
+                              <SelectItem value="AVAILABLE_SALE">
+                                Available for Sale
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -562,22 +579,42 @@ export default function ManageProperties() {
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <div className="space-y-4 w-full sm:flex-1 relative">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors duration-200">
-                            {selectedTower.name} - {apartment.number}
-                          </h3>
-                          <Badge
-                            variant={
-                              apartment.status === "OCCUPIED"
-                                ? "default"
-                                : apartment.status === "FOR_RENT"
-                                ? "secondary"
-                                : "outline"
-                            }
-                            className="w-fit"
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-semibold text-lg group-hover:text-primary transition-colors duration-200">
+                              {selectedTower.name} - {apartment.number}
+                            </h3>
+                            <Badge
+                              variant={
+                                apartment.status === "OCCUPIED"
+                                  ? "default"
+                                  : apartment.status === "FOR_RENT"
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              className="w-fit"
+                            >
+                              {apartment.status.replace("_", " ")}
+                            </Badge>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (
+                                confirm(
+                                  "Are you sure you want to delete this apartment?"
+                                )
+                              ) {
+                                deleteApartmentMutation.mutate(apartment.id);
+                              }
+                            }}
                           >
-                            {apartment.status.replace("_", " ")}
-                          </Badge>
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </Button>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
@@ -606,16 +643,6 @@ export default function ManageProperties() {
                           )}
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                        onClick={() =>
-                          deleteApartmentMutation.mutate(apartment.id)
-                        }
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
                     </motion.div>
                   ))}
                 </div>

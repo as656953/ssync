@@ -39,6 +39,10 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
+function getTowerLetter(towerId: number): string {
+  return String.fromCharCode(64 + towerId); // A = 65 in ASCII
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -150,31 +154,15 @@ export default function Dashboard() {
                 </div>
               ) : userApartment ? (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-muted rounded-lg">
-                      <div className="text-sm text-muted-foreground">Tower</div>
-                      <div className="font-medium mt-1">
-                        {userApartment.towerId}
-                      </div>
-                    </div>
-                    <div className="p-3 bg-muted rounded-lg">
-                      <div className="text-sm text-muted-foreground">Floor</div>
-                      <div className="font-medium mt-1">
-                        {userApartment.floor}
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="p-3 bg-muted rounded-lg">
                       <div className="text-sm text-muted-foreground">
-                        Number
+                        Your Apartment
                       </div>
                       <div className="font-medium mt-1">
-                        {userApartment.number}
-                      </div>
-                    </div>
-                    <div className="p-3 bg-muted rounded-lg">
-                      <div className="text-sm text-muted-foreground">Type</div>
-                      <div className="font-medium mt-1">
-                        {userApartment.type}
+                        {`${getTowerLetter(userApartment.towerId)}-${
+                          userApartment.number
+                        }(${userApartment.type})`}
                       </div>
                     </div>
                   </div>

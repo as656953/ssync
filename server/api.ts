@@ -46,11 +46,19 @@ app.post(
         return;
       }
 
+      const now = new Date();
+      const expiresAt = req.body.expiresAt
+        ? new Date(req.body.expiresAt)
+        : new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
       const noticeData = {
         title: req.body.title,
         content: req.body.content,
+        priority: req.body.priority || "NORMAL",
+        expiresAt,
         createdBy: req.session.user.id,
-        createdAt: new Date(),
+        createdAt: now,
+        updatedAt: now,
       };
       console.log("Creating notice with data:", noticeData);
 
